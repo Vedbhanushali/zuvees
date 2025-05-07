@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid()) // Or use Clerk's user ID if preferred as primary
+  clerkId        String   @unique // To link with Clerk User
+  email          String   @unique
+  firstName      String?
+  lastName       String?
+  role           Role     @default(CUSTOMER)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  orders         Order[] // Customer's orders
+  assignedOrders Order[]  @relation("RiderOrders") // Rider's assigned orders
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+  RIDER
+}
+
+model ApprovedEmail {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  role      Role     @default(CUSTOMER) // Role to assign upon first login
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  name        String
+  description String
+  basePrice   Float // Base price, variants can modify this
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  variants    ProductVariant[]
+  // Add category, brand etc. if you plan to expand
+}
+
+model ProductVariant {
+  id            String      @id @default(cuid())
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id])
+  color         String // e.g., "Black", "Cosmic Red"
+  size          String // e.g., "Disc Edition", "Digital Edition", "Standard Controller"
+  // priceModifier    Float?     // Optional: Use this if price varies significantly from baseProduct.price
+  specificPrice Float? // Or, store the absolute price for this variant
+  stock         Int
+  sku           String?     @unique // Stock Keeping Unit
+  images        String[] // Array of image URLs
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  orderItems    OrderItem[]
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String // Customer's Clerk ID or your User model ID
+  user            User        @relation(fields: [userId], references: [clerkId]) // Or references: [id]
+  totalAmount     Float
+  status          OrderStatus @default(PENDING_PAYMENT)
+  shippingAddress Json // Store as JSON: { street: "", city: "", state: "", zip: "", country: "" }
+  customerInfo    Json // Denormalized: { name: "", email: "", phone: "" (optional) }
+  riderId         String? // Rider's Clerk ID or your User model ID
+  rider           User?       @relation("RiderOrders", fields: [riderId], references: [clerkId]) // Or references: [id]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id               String         @id @default(cuid())
+  orderId          String
+  order            Order          @relation(fields: [orderId], references: [id])
+  productVariantId String
+  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
+  quantity         Int
+  priceAtPurchase  Float // Price of the variant at the time of order
+  createdAt        DateTime       @default(now())
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT // For potential future actual payment integration
+  PAID
+  SHIPPED
+  DELIVERED
+  UNDELIVERED
+  CANCELLED
+}
