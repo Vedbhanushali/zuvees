@@ -1,0 +1,46 @@
+services:
+  db:
+    container_name: db
+    platform: linux/amd64 #for platform error on Apple M1 chips
+    restart: unless-stopped
+    image: postgres:12.0-alpine
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - "5432:5432"
+
+  front:
+    container_name: front
+    build:
+      context: ./front
+      dockerfile: Dockerfile.local
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./front:/app # Mount local files for live reloading
+      - /app/node_modules # Prevent overwriting node_modules inside the container
+    env_file: .env
+    environment:
+      - NODE_ENV=development
+      - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - CLERK_SIGN_IN_URL=${CLERK_SIGN_IN_URL}
+      - CLERK_SIGN_UP_URL=${CLERK_SIGN_UP_URL}
+      - CLERK_SIGN_IN_FALLBACK_URL=${CLERK_SIGN_IN_FALLBACK_URL}
+      - CLERK_SIGN_UP_FALLBACK_URL=${CLERK_SIGN_UP_FALLBACK_URL}
+    stdin_open: true
+    tty: true
+
+  # adminer:
+  #   container_name: adminer
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8080:8080
+  #   networks:
+  #     - strapi_network
+  #   depends_on:
+  #     - db

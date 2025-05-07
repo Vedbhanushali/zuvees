@@ -1,0 +1,21 @@
+# Use Node.js 20 Alpine version
+FROM node:20-alpine
+
+# Set working directory inside the container
+WORKDIR /app
+
+# Copy package.json and install dependencies
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Copy all project files (except node_modules, handled by volume)
+COPY . .
+
+# Expose port
+EXPOSE 8001
+
+# Set environment variables for development
+ENV NODE_ENV=development
+
+# Start Remix in watch mode
+CMD ["npm", "run", "dev"]
