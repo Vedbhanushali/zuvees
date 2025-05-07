@@ -1,3 +1,4 @@
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/remix";
 import { Button } from "@heroui/react";
 import type { MetaFunction } from "@remix-run/node";
 
@@ -19,6 +20,19 @@ export default function Index() {
         </header>
         <nav className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-gray-200 p-6 dark:border-gray-700">
           <Button>Press me</Button>
+          <div>
+            <h1>Index Route</h1>
+            <SignedIn>
+              <p>You are signed in!</p>
+
+              <UserButton />
+            </SignedIn>
+            <SignedOut>
+              <p>You are signed out</p>
+
+              <SignInButton />
+            </SignedOut>
+          </div>
         </nav>
       </div>
     </div>

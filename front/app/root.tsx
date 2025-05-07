@@ -1,3 +1,8 @@
+import type {
+  MetaFunction,
+  LoaderFunction,
+  LinksFunction,
+} from "@remix-run/node";
 import {
   Links,
   Meta,
@@ -5,8 +10,10 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-import type { LinksFunction } from "@remix-run/node";
 import { HeroUIProvider } from "@heroui/react";
+
+import { rootAuthLoader } from "@clerk/remix/ssr.server";
+import { ClerkApp } from "@clerk/remix";
 
 import "./tailwind.css";
 
@@ -22,6 +29,8 @@ export const links: LinksFunction = () => [
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
 ];
+
+export const loader: LoaderFunction = (args) => rootAuthLoader(args);
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -41,10 +50,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App() {
+function App() {
   return (
     <HeroUIProvider>
       <Outlet />;
     </HeroUIProvider>
   );
 }
+
+export default ClerkApp(App);
