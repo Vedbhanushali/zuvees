@@ -1,4 +1,9 @@
 import { SignIn } from "@clerk/remix";
+import { MetaFunction } from "@remix-run/react";
+
+export const meta: MetaFunction = () => {
+  return [{ title: "Sign In" }];
+};
 
 export default function SignInLayout() {
   return (

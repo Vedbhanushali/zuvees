@@ -1,40 +1,53 @@
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/remix";
-import { Button } from "@heroui/react";
-import type { MetaFunction } from "@remix-run/node";
+import { redirect, type LoaderFunctionArgs } from "@remix-run/node";
 
-export const meta: MetaFunction = () => {
-  return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
-  ];
-};
+import { createClerkClient } from "@clerk/remix/api.server";
+import { getAuth } from "@clerk/remix/ssr.server";
+import { getOrCreateDbUser } from "~/server/auth.server";
+import { Role } from "@prisma/client";
 
-export default function Index() {
-  return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="flex flex-col items-center gap-16">
-        <header className="flex flex-col items-center gap-9">
-          <h1 className="leading text-2xl font-bold text-gray-800 dark:text-gray-100">
-            Welcome to <span className="sr-only">Zuvees</span>
-          </h1>
-        </header>
-        <nav className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-gray-200 p-6 dark:border-gray-700">
-          <Button>Press me</Button>
-          <div>
-            <h1>Index Route</h1>
-            <SignedIn>
-              <p>You are signed in!</p>
+export async function loader(args: LoaderFunctionArgs) {
+  // if not login go to sign in page
+  // get/create user (will create if email is in ApprovedEmail list)
+  // user is valid based on type will be redirected to the correct page
 
-              <UserButton />
-            </SignedIn>
-            <SignedOut>
-              <p>You are signed out</p>
+  const { userId, sessionId } = await getAuth(args);
+  if (!userId || !sessionId) {
+    // This should not happen if Clerk redirects correctly after login,
+    // but as a fallback, send to sign-in.
+    console.warn("Auth callback reached without active session/userId.");
+    return redirect("/sign-in");
+  }
+  // Fetch full Clerk user object to get email etc.
+  const clerkUser = await createClerkClient({
+    secretKey: process.env.CLERK_SECRET_KEY,
+  }).users.getUser(userId);
 
-              <SignInButton />
-            </SignedOut>
-          </div>
-        </nav>
-      </div>
-    </div>
-  );
+  if (!clerkUser) {
+    console.error(`Clerk user not found for ID: ${userId}`);
+    return redirect("/sign-in");
+  }
+  const dbUser = await getOrCreateDbUser(clerkUser);
+  if (!dbUser) {
+    // User's email might not be in ApprovedEmail list, or DB creation failed.
+    console.warn(
+      `DB User could not be fetched or created for Clerk ID: ${userId}. Redirecting to home.`
+    );
+    return redirect("/unauthorized-access");
+  }
+
+  if (dbUser.role === Role.ADMIN) {
+    return redirect("/admin/dashboard");
+  } else if (dbUser.role === Role.CUSTOMER) {
+    return redirect("/products");
+  } else {
+    // Fallback for other roles or if role is not set as expected
+    console.warn(
+      `User ${dbUser.email} has role ${dbUser.role}, redirecting to products.`
+    );
+    return redirect("/products");
+  }
+}
+
+export default function AuthCallback() {
+  return <div>Loading your experience...</div>;
 }

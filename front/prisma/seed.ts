@@ -17,6 +17,16 @@ async function main() {
         },
     });
 
+    const adminEmail1 = 'vedbhanushali0@gmail.com';
+    await prisma.approvedEmail.upsert({
+        where: { email: adminEmail },
+        update: {},
+        create: {
+            email: adminEmail1,
+            role: Role.ADMIN,
+        },
+    });
+
     const rider1Email = 'rider1@example.com';
     await prisma.approvedEmail.upsert({
         where: { email: rider1Email },
