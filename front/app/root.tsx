@@ -53,7 +53,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <HeroUIProvider>
-      <Outlet />;
+      <Outlet />
     </HeroUIProvider>
   );
 }
