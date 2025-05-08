@@ -19,7 +19,7 @@ async function main() {
 
     const adminEmail1 = 'vedbhanushali0@gmail.com';
     await prisma.approvedEmail.upsert({
-        where: { email: adminEmail },
+        where: { email: adminEmail1 },
         update: {},
         create: {
             email: adminEmail1,

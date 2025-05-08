@@ -12,6 +12,7 @@ import { createClerkClient } from "@clerk/remix/api.server";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { Role } from "@prisma/client";
 import { getOrCreateDbUser } from "~/server/auth.server";
+import { UserButton } from "@clerk/remix";
 
 export async function loader(args: LoaderFunctionArgs) {
   const { userId, sessionId } = await getAuth(args);
@@ -93,6 +94,9 @@ export default function AdminDashBoardLayout() {
             >
               Approvals
             </Link>
+          </NavbarItem>
+          <NavbarItem>
+            <UserButton />
           </NavbarItem>
         </NavbarContent>
       </Navbar>
