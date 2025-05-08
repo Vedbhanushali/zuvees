@@ -1,6 +1,13 @@
-# Welcome to Remix!
+# Welcome to Remix
 
 - 📖 [Remix docs](https://remix.run/docs)
+
+## Prisma
+
+```cmd
+npm run db # to generate prisma client
+npx tsx ./prisma/seed.ts # to seed database
+```
 
 ## Development
 
