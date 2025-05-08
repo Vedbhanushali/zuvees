@@ -36,7 +36,7 @@ export async function loader(args: LoaderFunctionArgs) {
   }
 
   if (dbUser.role === Role.ADMIN) {
-    return redirect("/admin/dashboard");
+    return redirect("/admin/orders");
   } else if (dbUser.role === Role.CUSTOMER) {
     return redirect("/products");
   } else {

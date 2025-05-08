@@ -29,7 +29,9 @@ export default function UnAuth() {
           </CardBody>
           <CardFooter>
             <Form method="post">
-              <button type="submit">SignUp</button>
+              <button type="submit">
+                Logout & SignUp with Different Account
+              </button>
             </Form>
           </CardFooter>
         </Card>
